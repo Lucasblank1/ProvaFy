@@ -1,27 +1,77 @@
 "use client";
 
-import { CheckCircle2, XCircle, Lightbulb, RotateCcw } from "lucide-react";
-import { Questao } from "./SetupSimulado";
+import Link from "next/link";
+import { CheckCircle2, XCircle, Lightbulb, RotateCcw, History, AlertCircle } from "lucide-react";
+import type { Questao, RespostasUsuario } from "@/types/simulado";
+import { calcularResultado } from "@/lib/simulado-utils";
+
+export type SaveStatus = "idle" | "saving" | "saved" | "guest" | "error";
 
 interface ResultadoSimuladoProps {
   questoes: Questao[];
-  respostasUsuario: Record<number, string>;
-  onReset: () => void;
+  respostasUsuario: RespostasUsuario;
+  onReset?: () => void;
+  modoHistorico?: boolean;
+  saveStatus?: SaveStatus;
+  historicoId?: string | null;
 }
 
-export default function ResultadoSimulado({ questoes, respostasUsuario, onReset }: ResultadoSimuladoProps) {
-  const totalQuestoes = questoes.length;
-  
-  // Calcula o total de acertos
-  const acertos = questoes.reduce((acc, questao, index) => {
-    return acc + (respostasUsuario[index] === questao.resposta_correta ? 1 : 0);
-  }, 0);
-
-  const percentual = Math.round((acertos / totalQuestoes) * 100);
+export default function ResultadoSimulado({
+  questoes,
+  respostasUsuario,
+  onReset,
+  modoHistorico = false,
+  saveStatus = "idle",
+  historicoId = null,
+}: ResultadoSimuladoProps) {
+  const { totalQuestoes, acertos, percentual } = calcularResultado(
+    questoes,
+    respostasUsuario
+  );
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-8 animate-in fade-in duration-500">
       
+      {!modoHistorico && saveStatus !== "idle" && (
+        <div
+          className={`rounded-xl px-4 py-3 text-sm border ${
+            saveStatus === "saved"
+              ? "bg-green-50 border-green-200 text-green-800"
+              : saveStatus === "guest"
+                ? "bg-amber-50 border-amber-200 text-amber-900"
+                : saveStatus === "error"
+                  ? "bg-red-50 border-red-200 text-red-800"
+                  : "bg-blue-50 border-blue-200 text-blue-800"
+          }`}
+        >
+          {saveStatus === "saving" && "Salvando no seu histórico..."}
+          {saveStatus === "saved" && (
+            <span className="flex flex-wrap items-center gap-2">
+              Simulado salvo no histórico.
+              {historicoId && (
+                <Link
+                  href={`/historico/${historicoId}`}
+                  className="font-medium underline inline-flex items-center gap-1"
+                >
+                  <History className="w-4 h-4" />
+                  Ver depois
+                </Link>
+              )}
+            </span>
+          )}
+          {saveStatus === "guest" && (
+            <span className="flex flex-wrap items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <Link href="/login" className="font-medium underline">
+                Faça login
+              </Link>{" "}
+              para guardar este resultado e revisar erros depois.
+            </span>
+          )}
+          {saveStatus === "error" && "Não foi possível salvar. Tente novamente mais tarde."}
+        </div>
+      )}
+
       {/* Cabeçalho de Pontuação */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden text-center p-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">Resultado Final</h2>
@@ -129,15 +179,27 @@ export default function ResultadoSimulado({ questoes, respostasUsuario, onReset 
         })}
       </div>
 
-      {/* Botão Reset / Novo Simulado */}
-      <div className="pt-4 pb-12 flex justify-center">
-        <button
-          onClick={onReset}
-          className="flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
-        >
-          <RotateCcw className="w-5 h-5" />
-          <span>Criar Novo Simulado</span>
-        </button>
+      {/* Ações */}
+      <div className="pt-4 pb-12 flex flex-wrap justify-center gap-4">
+        {modoHistorico ? (
+          <Link
+            href="/historico"
+            className="flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-sm transition-all"
+          >
+            <History className="w-5 h-5" />
+            <span>Voltar ao histórico</span>
+          </Link>
+        ) : (
+          onReset && (
+            <button
+              onClick={onReset}
+              className="flex items-center space-x-2 px-8 py-4 rounded-xl font-semibold bg-gray-900 text-white hover:bg-gray-800 shadow-sm transition-all hover:shadow hover:-translate-y-0.5"
+            >
+              <RotateCcw className="w-5 h-5" />
+              <span>Criar Novo Simulado</span>
+            </button>
+          )
+        )}
       </div>
 
     </div>

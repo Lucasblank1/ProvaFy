@@ -2,23 +2,12 @@
 
 import { useState, FormEvent, useRef } from "react";
 import { UploadCloud, FileText, Loader2, AlertCircle, File as FileIcon, X } from "lucide-react";
+import type { Questao, SimuladoMetadata } from "@/types/simulado";
 
-export interface Questao {
-  id: number;
-  enunciado: string;
-  alternativas: {
-    A: string;
-    B: string;
-    C: string;
-    D: string;
-    E: string;
-  };
-  resposta_correta: string;
-  explicacao: string;
-}
+export type { Questao };
 
 interface SetupSimuladoProps {
-  onSimuladoGerado: (simulado: Questao[]) => void;
+  onSimuladoGerado: (simulado: Questao[], meta?: SimuladoMetadata) => void;
 }
 
 export default function SetupSimulado({ onSimuladoGerado }: SetupSimuladoProps) {
@@ -95,7 +84,10 @@ export default function SetupSimulado({ onSimuladoGerado }: SetupSimuladoProps) 
         throw new Error(data.error || "Ocorreu um erro ao processar o simulado.");
       }
 
-      onSimuladoGerado(data);
+      onSimuladoGerado(data, {
+        cargo: cargo.trim() || undefined,
+        banca: banca.trim() || undefined,
+      });
     } catch (err: any) {
       setErro(err.message || "Erro de conexão ao comunicar com a API.");
     } finally {
