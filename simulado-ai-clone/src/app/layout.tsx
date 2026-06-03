@@ -8,7 +8,7 @@ import HeaderNav from "@/components/HeaderNav";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "SimuladoAI",
+  title: "ProvaFy",
   description: "Gerador de simulados inteligentes focados em PDFs.",
 };
 
@@ -29,7 +29,7 @@ export default function RootLayout({
                 href="/"
                 className="text-xl font-bold tracking-tight text-blue-600 hover:text-blue-700"
               >
-                SimuladoAI
+                ProvaFy
               </Link>
               <HeaderNav />
             </div>
