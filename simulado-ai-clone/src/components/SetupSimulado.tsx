@@ -81,7 +81,12 @@ export default function SetupSimulado({ onSimuladoGerado }: SetupSimuladoProps) 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Ocorreu um erro ao processar o simulado.");
+        const mensagem =
+          data.error ||
+          (response.status === 503
+            ? "O serviço de IA está temporariamente sobrecarregado. Tente novamente em instantes."
+            : "Ocorreu um erro ao processar o simulado.");
+        throw new Error(mensagem);
       }
 
       onSimuladoGerado(data, {
